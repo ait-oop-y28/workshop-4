@@ -2,7 +2,7 @@
 @using System.Diagnostics.CodeAnalysis
 @using Phazor.Components.Models
 @using Workshop4.Application.Pipelines.Nodes
-@using Workshop4.Application.Pipelines.Models
+@using Workshop4.Application.Pipelines.Operation
 @using Workshop4.Presentation.Services
 
 <MudCard Class="node-card" Elevation="0">
@@ -33,16 +33,17 @@
                 Disabled="@AppState.Instance.IsExecuting"/>
 
             <MudSelect
-                T="FilterOperation"
+                T="IFilterOperation"
                 @bind-Value="Node.FilterOperation"
                 Label="Operation"
                 Variant="Variant.Outlined"
                 FullWidth="true"
-                Disabled="@AppState.Instance.IsExecuting">
+                Disabled="@AppState.Instance.IsExecuting"
+                ToStringFunc="op => op?.Name">
 
-                @foreach (FilterOperation op in Operations)
+                @foreach (IFilterOperation operation in Operations)
                 {
-                    <MudSelectItem T="FilterOperation" Value="@op">@FormatOperation(op)</MudSelectItem>
+                    <MudSelectItem T="IFilterOperation" Value="@operation"/>
                 }
 
             </MudSelect>
@@ -60,23 +61,17 @@
 
 @code {
 
-    private static readonly FilterOperation[] Operations = Enum
-        .GetValues<FilterOperation>()
-        .Except([FilterOperation.None])
-        .ToArray();
+    private static readonly IFilterOperation[] Operations =
+    [
+        new EqualsOperation(),
+        new NotEqualsOperation(),
+        new GreaterThanOperation(),
+        new LessThanOperation(),
+    ];
 
     [NotNull]
     [Parameter]
     [EditorRequired]
     public required FilterNode? Node { get; set; }
-
-    private static string FormatOperation(FilterOperation op) => op switch
-    {
-        FilterOperation.Equals => "=",
-        FilterOperation.NotEquals => "!=",
-        FilterOperation.GreaterThan => ">",
-        FilterOperation.LessThan => "<",
-        _ => op.ToString(),
-    };
 
 }

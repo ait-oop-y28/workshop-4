@@ -1,5 +1,6 @@
 using Workshop4.Application.Pipelines.Models;
 using Workshop4.Application.Pipelines.Nodes;
+using Workshop4.Application.Pipelines.Operation;
 
 namespace Workshop4.Presentation.Services;
 
@@ -49,7 +50,7 @@ public static class MockFactory
         {
             IsEnabled = true,
             PropertyName = "age",
-            FilterOperation = FilterOperation.GreaterThan,
+            FilterOperation = new GreaterThanOperation(),
             Value = "25",
         };
 

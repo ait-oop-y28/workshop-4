@@ -1,3 +1,4 @@
+using System.Reactive.Subjects;
 using Workshop4.Application.Pipelines.Nodes;
 using Workshop4.Presentation.Models;
 
@@ -9,16 +10,34 @@ public sealed class AppState
         () => new AppState(),
         LazyThreadSafetyMode.ExecutionAndPublication);
 
+    private readonly ReplaySubject<bool> _isExecutingChanged = new(1);
+    
     private Stack<GroupNode> _navigationStack = [];
     private Stack<GroupNode>? _backupNavigationStack;
 
-    private AppState() { }
+    private ExecutionState _executionState = ExecutionState.None;
+
+
+    private AppState()
+    {
+        _isExecutingChanged.OnNext(false);
+    }
 
     public static AppState Instance => LazyInstance.Value;
 
     public bool IsExecuting => ExecutionState is ExecutionState.Run or ExecutionState.Debug;
 
-    public ExecutionState ExecutionState { get; set; }
+    public IObservable<bool> IsExecutingChanged => _isExecutingChanged;
+
+    public ExecutionState ExecutionState
+    {
+        get => _executionState;
+        set
+        {
+            _executionState = value;
+            _isExecutingChanged.OnNext(IsExecuting);
+        }
+    }
 
     public string InputJson { get; set; } = MockFactory.MockInput;
 

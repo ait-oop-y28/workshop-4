@@ -3,17 +3,19 @@
 @using Workshop4.Presentation.Services
 @namespace Workshop4.Presentation.Components.NodeActions
 
-<MudCheckBox
-    T="bool"
-    Value="Node.IsEnabled"
-    ValueChanged="@OnButtonClicked"
-    Color="ButtonColor"
-    Disabled="AppState.Instance.IsExecuting"
-    Dense="true">
+<PhazorReactiveValue Value="AppState.Instance.IsExecutingChanged" Context="isExecuting">
+    <MudCheckBox
+        T="bool"
+        Value="Node.IsEnabled"
+        ValueChanged="@OnButtonClicked"
+        Color="ButtonColor"
+        Disabled="isExecuting"
+        Dense="true">
 
-    @ButtonText
+        @ButtonText
 
-</MudCheckBox>
+    </MudCheckBox>
+</PhazorReactiveValue>
 
 @code {
 

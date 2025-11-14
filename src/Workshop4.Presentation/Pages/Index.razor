@@ -86,7 +86,7 @@
                 if (node.IsEnabled is false)
                     continue;
 
-                NodeExecutionResult nodeResult = await node.ExecuteAsync(_workingDocument, this);
+                NodeExecutionResult nodeResult = await node.ExecuteAsync(_workingDocument, presentationManager: this);
 
                 if (nodeResult is NodeExecutionResult.Success success)
                 {

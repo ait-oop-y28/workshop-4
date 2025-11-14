@@ -18,13 +18,15 @@
 
             </PhazorHStack>
 
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Disabled="@AppState.Instance.IsExecuting"
-                       OnClick="@AddProjection">
-                Add mapping
-            </MudButton>
+            <PhazorReactiveValue Value="AppState.Instance.IsExecutingChanged">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           Disabled="context"
+                           OnClick="@AddProjection">
+                    Add mapping
+                </MudButton>
+            </PhazorReactiveValue>
 
         </PhazorHStack>
     </MudCardHeader>
@@ -48,30 +50,37 @@
                 {
                     <PhazorGridSection>
                         <PhazorGridItem>
-                            <MudTextField @bind-Value="projection.SourceFieldName"
-                                          Label="Source field"
-                                          Variant="Variant.Outlined"
-                                          Placeholder="e.g. name"
-                                          Disabled="@AppState.Instance.IsExecuting"
-                                          Immediate="true"
-                                          FullWidth="true"/>
+                            <PhazorReactiveValue Value="AppState.Instance.IsExecutingChanged">
+                                <MudTextField @bind-Value="projection.SourceFieldName"
+                                              Label="Source field"
+                                              Variant="Variant.Outlined"
+                                              Placeholder="e.g. name"
+                                              Disabled="context"
+                                              Immediate="true"
+                                              FullWidth="true"/>
+
+                            </PhazorReactiveValue>
                         </PhazorGridItem>
                         <PhazorGridItem>
-                            <MudTextField @bind-Value="projection.TargetFieldName"
-                                          Label="Target field"
-                                          Variant="Variant.Outlined"
-                                          Placeholder="e.g. fullName"
-                                          Disabled="@AppState.Instance.IsExecuting"
-                                          Immediate="true"
-                                          FullWidth="true"/>
+                            <PhazorReactiveValue Value="AppState.Instance.IsExecutingChanged">
+                                <MudTextField @bind-Value="projection.TargetFieldName"
+                                              Label="Target field"
+                                              Variant="Variant.Outlined"
+                                              Placeholder="e.g. fullName"
+                                              Disabled="context"
+                                              Immediate="true"
+                                              FullWidth="true"/>
+                            </PhazorReactiveValue>
                         </PhazorGridItem>
                         <PhazorGridItem>
-                            <MudIconButton
-                                Icon="@Icons.Material.Filled.Remove"
-                                Color="Color.Error"
-                                OnClick="@(() => RemoveProjection(projection))"
-                                Variant="Variant.Filled"
-                                Disabled="@AppState.Instance.IsExecuting"/>
+                            <PhazorReactiveValue Value="AppState.Instance.IsExecutingChanged">
+                                <MudIconButton
+                                    Icon="@Icons.Material.Filled.Remove"
+                                    Color="Color.Error"
+                                    OnClick="@(() => RemoveProjection(projection))"
+                                    Variant="Variant.Filled"
+                                    Disabled="context"/>
+                            </PhazorReactiveValue>
                         </PhazorGridItem>
                     </PhazorGridSection>
                 }

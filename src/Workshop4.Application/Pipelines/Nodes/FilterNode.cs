@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Workshop4.Application.Json.Models;
 using Workshop4.Application.Pipelines.Models;
+using Workshop4.Application.Pipelines.Operation;
 using Workshop4.Application.Pipelines.Presentation;
 
 namespace Workshop4.Application.Pipelines.Nodes;
@@ -10,7 +11,7 @@ public sealed class FilterNode : IPipelineNode
     public FilterNode()
     {
         PropertyName = string.Empty;
-        FilterOperation = FilterOperation.None;
+        FilterOperation = new NoneOperation();
         Value = string.Empty;
     }
 
@@ -18,7 +19,7 @@ public sealed class FilterNode : IPipelineNode
 
     public string PropertyName { get; set; }
 
-    public FilterOperation FilterOperation { get; set; }
+    public IFilterOperation FilterOperation { get; set; }
 
     public string Value { get; set; }
 
@@ -95,27 +96,10 @@ public sealed class FilterNode : IPipelineNode
         bool filterTrue =
             decimal.TryParse(propertyValue.Value, out decimal leftNumber)
             && decimal.TryParse(Value, out decimal rightNumber)
-            && (OperationExecutor<decimal>.ExecuteOperation(leftNumber, rightNumber, FilterOperation)
-                || OperationExecutor<string>.ExecuteOperation(propertyValue.Value, Value, FilterOperation));
+            && (FilterOperation.Execute(leftNumber, rightNumber)
+                || FilterOperation.Execute(propertyValue.Value, Value));
 
         return new NodeFilterResult.Success(filterTrue);
-    }
-
-    private static class OperationExecutor<T>
-        where T : IEquatable<T>, IComparable<T>
-    {
-        public static bool ExecuteOperation(T left, T right, FilterOperation operation)
-        {
-            return operation switch
-            {
-                FilterOperation.None => true,
-                FilterOperation.Equals => left.Equals(right),
-                FilterOperation.NotEquals => left.Equals(right) is false,
-                FilterOperation.GreaterThan => left.CompareTo(right) > 0,
-                FilterOperation.LessThan => left.CompareTo(right) < 0,
-                _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
-            };
-        }
     }
 
     private abstract record NodeFilterResult
@@ -129,17 +113,9 @@ public sealed class FilterNode : IPipelineNode
 
     public override string ToString()
     {
-        string op = FilterOperation switch
-        {
-            FilterOperation.Equals => "=",
-            FilterOperation.NotEquals => "!=",
-            FilterOperation.GreaterThan => ">",
-            FilterOperation.LessThan => "<",
-            _ => "?",
-        };
-
         string field = string.IsNullOrWhiteSpace(PropertyName) ? "(field)" : PropertyName;
         string val = string.IsNullOrWhiteSpace(Value) ? "(value)" : Value;
-        return $"Filter {field} {op} {val}";
+
+        return $"Filter {field} {FilterOperation.Name} {val}";
     }
 }
