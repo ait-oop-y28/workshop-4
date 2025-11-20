@@ -9,8 +9,6 @@ public sealed class GroupNode : IPipelineNode
 {
     private readonly List<IPipelineNode> _childNodes = [];
 
-    public bool IsEnabled { get; set; }
-
     public string Name { get; set; } = string.Empty;
 
     public IReadOnlyCollection<IPipelineNode> ChildNodes => _childNodes;
@@ -25,11 +23,16 @@ public sealed class GroupNode : IPipelineNode
         _childNodes.Remove(node);
     }
 
+    public void Accept(IPipelineNodeVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
+
     public async Task<NodeExecutionResult> ExecuteAsync(
         JsonDocument input,
         IPipelinePresentationManager presentationManager)
     {
-        if (IsEnabled is false || _childNodes.Count is 0)
+        if (_childNodes.Count is 0)
             return new NodeExecutionResult.Success(input);
 
         await presentationManager.OnExecutingNodeChangedAsync(this);

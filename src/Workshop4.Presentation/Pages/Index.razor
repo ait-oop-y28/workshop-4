@@ -83,9 +83,6 @@
 
             foreach (IPipelineNode node in AppState.Instance.RootGroup.ChildNodes)
             {
-                if (node.IsEnabled is false)
-                    continue;
-
                 NodeExecutionResult nodeResult = await node.ExecuteAsync(_workingDocument, presentationManager: this);
 
                 if (nodeResult is NodeExecutionResult.Success success)
@@ -130,7 +127,7 @@
         {
             _workingDocument = _jsonFactory.CreateDocument(AppState.Instance.InputJson);
             AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
-            
+
             await InvokeAsync(StateHasChanged);
             _currentExecutingNode = null;
         }
@@ -145,7 +142,7 @@
         if (AppState.Instance.ExecutionState is not ExecutionState.Debug || _workingDocument is null)
             return;
 
-        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes.Where(x => x.IsEnabled);
+        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
 
         _currentExecutingNode = _currentExecutingNode is null
             ? enabledNodes.First()
@@ -201,7 +198,7 @@
 
         AppState.Instance.ExecutionState = ExecutionState.Run;
 
-        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes.Where(x => x.IsEnabled);
+        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
 
         IEnumerable<IPipelineNode> remainingNodes = _currentExecutingNode is null
             ? enabledNodes

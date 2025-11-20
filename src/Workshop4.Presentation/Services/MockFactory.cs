@@ -27,7 +27,7 @@ public static class MockFactory
     {
         var pipeline = new GroupNode();
 
-        var mapNode = new MappingNode { IsEnabled = true };
+        var mapNode = new MappingNode();
 
         mapNode.AddProjection(new MappingNodeProjection
         {
@@ -48,17 +48,16 @@ public static class MockFactory
 
         var filterNode = new FilterNode
         {
-            IsEnabled = true,
             PropertyName = "age",
             FilterOperation = new GreaterThanOperation(),
             Value = "25",
         };
 
-        var groupNode = new GroupNode { IsEnabled = true, Name = "Users" };
+        var groupNode = new GroupNode { Name = "Users" };
 
-        pipeline.AddNode(filterNode);
-        pipeline.AddNode(mapNode);
-        pipeline.AddNode(groupNode);
+        pipeline.AddNode(new EnabledNode(filterNode));
+        pipeline.AddNode(new EnabledNode(mapNode));
+        pipeline.AddNode(new EnabledNode(groupNode));
 
         return pipeline;
     }

@@ -6,7 +6,7 @@ namespace Workshop4.Application.Pipelines.Nodes;
 
 public interface IPipelineNode
 {
-    public bool IsEnabled { get; set; }
+    void Accept(IPipelineNodeVisitor visitor);
 
     Task<NodeExecutionResult> ExecuteAsync(JsonDocument input, IPipelinePresentationManager presentationManager);
 }

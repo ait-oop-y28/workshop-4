@@ -15,21 +15,21 @@ public sealed class FilterNode : IPipelineNode
         Value = string.Empty;
     }
 
-    public bool IsEnabled { get; set; }
-
     public string PropertyName { get; set; }
 
     public IFilterOperation FilterOperation { get; set; }
 
     public string Value { get; set; }
 
+    public void Accept(IPipelineNodeVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
+
     public async Task<NodeExecutionResult> ExecuteAsync(
         JsonDocument input,
         IPipelinePresentationManager presentationManager)
     {
-        if (IsEnabled is false)
-            return new NodeExecutionResult.Success(input);
-
         await presentationManager.OnExecutingNodeChangedAsync(this);
         await Task.Delay(TimeSpan.FromMilliseconds(500));
 

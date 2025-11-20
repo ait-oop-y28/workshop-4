@@ -8,6 +8,6 @@ public sealed class MappingNodeFactory : IPipelineNodeFactory
 
     public IPipelineNode CreateNode()
     {
-        return new MappingNode { IsEnabled = true };
+        return new EnabledNode(new MappingNode());
     }
 }

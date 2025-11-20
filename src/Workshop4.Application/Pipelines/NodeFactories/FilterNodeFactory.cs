@@ -8,6 +8,6 @@ public sealed class FilterNodeFactory : IPipelineNodeFactory
 
     public IPipelineNode CreateNode()
     {
-        return new FilterNode { IsEnabled = true };
+        return new EnabledNode(new FilterNode());
     }
 }

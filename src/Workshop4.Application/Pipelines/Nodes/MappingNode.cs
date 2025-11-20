@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Workshop4.Application.Json.Models;
 using Workshop4.Application.Pipelines.Models;
 using Workshop4.Application.Pipelines.Presentation;
@@ -9,8 +8,6 @@ namespace Workshop4.Application.Pipelines.Nodes;
 public sealed class MappingNode : IPipelineNode
 {
     private readonly List<MappingNodeProjection> _projections = [];
-
-    public bool IsEnabled { get; set; }
 
     public IReadOnlyCollection<MappingNodeProjection> Projections => _projections;
 
@@ -24,13 +21,15 @@ public sealed class MappingNode : IPipelineNode
         _projections.Remove(projection);
     }
 
+    public void Accept(IPipelineNodeVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
+
     public async Task<NodeExecutionResult> ExecuteAsync(
         JsonDocument input,
         IPipelinePresentationManager presentationManager)
     {
-        if (IsEnabled is false)
-            return new NodeExecutionResult.Success(input);
-
         await presentationManager.OnExecutingNodeChangedAsync(this);
         await Task.Delay(TimeSpan.FromMilliseconds(500));
 

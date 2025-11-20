@@ -8,6 +8,6 @@ public sealed class GroupNodeFactory : IPipelineNodeFactory
 
     public IPipelineNode CreateNode()
     {
-        return new GroupNode { IsEnabled = true, Name = "Group" };
+        return new EnabledNode(new GroupNode { Name = "Group" });
     }
 }

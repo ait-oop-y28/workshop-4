@@ -2,6 +2,7 @@
 @using Phazor.Components.Models
 @using Workshop4.Application.Pipelines.Nodes
 @using Workshop4.Presentation.Components.NodeActions
+@using Workshop4.Presentation.Visitors
 @namespace Workshop4.Presentation.Components.Nodes
 
 @{
@@ -18,6 +19,11 @@
         <MudCard Elevation="2" Style="height: 100%; background: #f1f1f1" Class="node-card-wrapper"/>
     </PhazorGridItem>
 
+    @{
+        var visitor = new DynamicNodeVisitor(OnGroupOpened);
+        Node.Accept(visitor);
+    }
+
     <PhazorGridItem MajorIndex="1" MinorIndex="1">
         <PhazorHStack
             Horizontal="HorizontalDistribution.Left"
@@ -27,30 +33,25 @@
 
             <RemoveNodeActionComponent
                 OnRemoveNodeClicked="@(() => OnNodeRemoved.InvokeAsync(Node))"/>
-
-            <EnabledNodeActionComponent
-                Node="Node"/>
+            
+            @foreach (RenderFragment action in visitor.Actions)
+            {
+                @action
+            }
 
         </PhazorHStack>
     </PhazorGridItem>
 
     <PhazorGridItem MajorIndex="2" MinorIndex="1">
-        @switch (Node)
+        @if (visitor.NodeComponent is not null)
         {
-            case FilterNode filter:
-                <FilterNodeComponent Node="filter"/>
-                break;
-            case MappingNode map:
-                <MapNodeComponent Node="map"/>
-                break;
-            case GroupNode group:
-                <GroupNodeComponent Node="group" OnEdit="OnGroupOpened"/>
-                break;
-            default:
-                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
-                    Unknown node type: @Node.GetType().Name
-                </MudAlert>
-                break;
+            @visitor.NodeComponent
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                Unknown node type: @Node.GetType().Name
+            </MudAlert>
         }
     </PhazorGridItem>
 
