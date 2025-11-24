@@ -1,6 +1,5 @@
-using Workshop4.Application.Json.Models;
-using Workshop4.Application.Pipelines.Models;
-using Workshop4.Application.Pipelines.Presentation;
+using Workshop4.Application.Pipelines.Commands;
+using Workshop4.Application.Pipelines.Iterators;
 
 namespace Workshop4.Application.Pipelines.Nodes;
 
@@ -24,12 +23,17 @@ public sealed class EnabledNode : IPipelineNode
         visitor.Visit(this);
     }
 
-    public async Task<NodeExecutionResult> ExecuteAsync(
-        JsonDocument input,
-        IPipelinePresentationManager presentationManager)
+    public IPipelineIterator GetEnumerator()
     {
         return IsEnabled
-            ? await Wrapped.ExecuteAsync(input, presentationManager)
-            : new NodeExecutionResult.Success(input);
+            ? Wrapped.GetEnumerator()
+            : new NoOpIterator();
+    }
+
+    public IPipelineCommand? TryCreateCommand()
+    {
+        return IsEnabled
+            ? Wrapped.TryCreateCommand()
+            : null;
     }
 }

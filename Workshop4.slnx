@@ -5,7 +5,8 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src\Workshop4.Application\Workshop4.Application.csproj" Type="Classic C#" />
-    <Project Path="src\Workshop4.Presentation\Workshop4.Presentation.csproj" Type="Classic C#" />
+    <Project Path="src/Workshop4.Console/Workshop4.Console.csproj" />
+    <Project Path="src\Workshop4.Application\Workshop4.Application.csproj" Type="C#" />
+    <Project Path="src\Workshop4.Presentation\Workshop4.Presentation.csproj" Type="C#" />
   </Folder>
 </Solution>

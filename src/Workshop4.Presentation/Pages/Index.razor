@@ -7,7 +7,10 @@
 @using Workshop4.Application.Pipelines.Models
 @using System.Linq
 @using Phazor.Components.Models
+@using Workshop4.Application.Extensions
 @using Workshop4.Application.Json
+@using Workshop4.Application.Pipelines.Commands
+@using Workshop4.Presentation.Execution
 @using Workshop4.Presentation.Models
 @using HorizontalAlignment = Phazor.Components.Models.HorizontalAlignment
 @implements Workshop4.Application.Pipelines.Presentation.IPipelinePresentationManager
@@ -67,49 +70,12 @@
 
     private async Task StartRunAsync()
     {
-        if (AppState.Instance.IsExecuting)
-            return;
+        _workingDocument = _jsonFactory.CreateDocument(AppState.Instance.InputJson);
 
-        AppState.Instance.ExecutionState = ExecutionState.Run;
-        _executionFrameStack.Clear();
+        var factory = new RunExecutionStrategyFactory();
+        IExecutionStrategy strategy = factory.Create(_workingDocument, new ExecutionContext(this));
 
-        AppState.Instance.BackupNavigationStack();
-        await InvokeAsync(StateHasChanged);
-
-        try
-        {
-            _workingDocument = _jsonFactory.CreateDocument(AppState.Instance.InputJson);
-            AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
-
-            foreach (IPipelineNode node in AppState.Instance.RootGroup.ChildNodes)
-            {
-                NodeExecutionResult nodeResult = await node.ExecuteAsync(_workingDocument, presentationManager: this);
-
-                if (nodeResult is NodeExecutionResult.Success success)
-                {
-                    _executionFrameStack.Push(new ExecutionFrame(node, _workingDocument));
-                    _workingDocument = success.Document;
-
-                    await InvokeAsync(StateHasChanged);
-                }
-                else if (nodeResult is NodeExecutionResult.Failure fail)
-                {
-                    AppState.Instance.OutputText = $"ERROR: {fail.ErrorMessage}";
-                    return;
-                }
-                else
-                {
-                    AppState.Instance.OutputText = "Unknown result";
-                    return;
-                }
-            }
-
-            AppState.Instance.OutputText = _workingDocument is not null ? JsonDocumentFormatter.FormatDocument(_workingDocument) : "[]";
-        }
-        finally
-        {
-            FinishExecution();
-        }
+        await strategy.StartAsync();
     }
 
     private async Task StartDebugAsync()
@@ -139,39 +105,39 @@
 
     private async Task StepForwardAsync()
     {
-        if (AppState.Instance.ExecutionState is not ExecutionState.Debug || _workingDocument is null)
-            return;
-
-        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
-
-        _currentExecutingNode = _currentExecutingNode is null
-            ? enabledNodes.First()
-            : enabledNodes.SkipWhile(x => x != _currentExecutingNode).Skip(1).FirstOrDefault();
-
-        if (_currentExecutingNode is null)
-        {
-            FinishExecution();
-            return;
-        }
-
-        NodeExecutionResult nodeResult = await _currentExecutingNode.ExecuteAsync(_workingDocument, this);
-        _executionFrameStack.Push(new ExecutionFrame(_currentExecutingNode, _workingDocument));
-
-        if (nodeResult is NodeExecutionResult.Success ok)
-        {
-            _workingDocument = ok.Document;
-            AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
-        }
-        else if (nodeResult is NodeExecutionResult.Failure fail)
-        {
-            AppState.Instance.OutputText = $"ERROR: {fail.ErrorMessage}";
-            FinishExecution();
-        }
-        else
-        {
-            AppState.Instance.OutputText = "Unknown result";
-            FinishExecution();
-        }
+        // if (AppState.Instance.ExecutionState is not ExecutionState.Debug || _workingDocument is null)
+        //     return;
+        //
+        // IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
+        //
+        // _currentExecutingNode = _currentExecutingNode is null
+        //     ? enabledNodes.First()
+        //     : enabledNodes.SkipWhile(x => x != _currentExecutingNode).Skip(1).FirstOrDefault();
+        //
+        // if (_currentExecutingNode is null)
+        // {
+        //     FinishExecution();
+        //     return;
+        // }
+        //
+        // PipelineCommandExecutionResult? nodeResult = _currentExecutingNode.TryCreateCommand()?.Execute(_workingDocument);
+        // _executionFrameStack.Push(new ExecutionFrame(_currentExecutingNode, _workingDocument));
+        //
+        // if (nodeResult is NodeExecutionResult.Success ok)
+        // {
+        //     _workingDocument = ok.Document;
+        //     AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
+        // }
+        // else if (nodeResult is NodeExecutionResult.Failure fail)
+        // {
+        //     AppState.Instance.OutputText = $"ERROR: {fail.ErrorMessage}";
+        //     FinishExecution();
+        // }
+        // else
+        // {
+        //     AppState.Instance.OutputText = "Unknown result";
+        //     FinishExecution();
+        // }
     }
 
     private async Task StepBackwardAsync()
@@ -193,42 +159,42 @@
 
     private async Task PassAsync()
     {
-        if (AppState.Instance.ExecutionState is not ExecutionState.Debug || _workingDocument is null)
-            return;
-
-        AppState.Instance.ExecutionState = ExecutionState.Run;
-
-        IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
-
-        IEnumerable<IPipelineNode> remainingNodes = _currentExecutingNode is null
-            ? enabledNodes
-            : enabledNodes.SkipWhile(x => x != _currentExecutingNode).Skip(1);
-
-        foreach (IPipelineNode node in remainingNodes)
-        {
-            NodeExecutionResult nodeResult = await node.ExecuteAsync(_workingDocument, this);
-
-            if (nodeResult is NodeExecutionResult.Success success)
-            {
-                _executionFrameStack.Push(new ExecutionFrame(node, _workingDocument));
-                _workingDocument = success.Document;
-
-                await InvokeAsync(StateHasChanged);
-            }
-            else if (nodeResult is NodeExecutionResult.Failure fail)
-            {
-                AppState.Instance.OutputText = $"ERROR: {fail.ErrorMessage}";
-                return;
-            }
-            else
-            {
-                AppState.Instance.OutputText = "Unknown result";
-                return;
-            }
-        }
-
-        AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
-        FinishExecution();
+        // if (AppState.Instance.ExecutionState is not ExecutionState.Debug || _workingDocument is null)
+        //     return;
+        //
+        // AppState.Instance.ExecutionState = ExecutionState.Run;
+        //
+        // IEnumerable<IPipelineNode> enabledNodes = AppState.Instance.RootGroup.ChildNodes;
+        //
+        // IEnumerable<IPipelineNode> remainingNodes = _currentExecutingNode is null
+        //     ? enabledNodes
+        //     : enabledNodes.SkipWhile(x => x != _currentExecutingNode).Skip(1);
+        //
+        // foreach (IPipelineNode node in remainingNodes)
+        // {
+        //     NodeExecutionResult nodeResult = node.Execute(_workingDocument);
+        //
+        //     if (nodeResult is NodeExecutionResult.Success success)
+        //     {
+        //         _executionFrameStack.Push(new ExecutionFrame(node, _workingDocument));
+        //         _workingDocument = success.Document;
+        //
+        //         await InvokeAsync(StateHasChanged);
+        //     }
+        //     else if (nodeResult is NodeExecutionResult.Failure fail)
+        //     {
+        //         AppState.Instance.OutputText = $"ERROR: {fail.ErrorMessage}";
+        //         return;
+        //     }
+        //     else
+        //     {
+        //         AppState.Instance.OutputText = "Unknown result";
+        //         return;
+        //     }
+        // }
+        //
+        // AppState.Instance.OutputText = JsonDocumentFormatter.FormatDocument(_workingDocument);
+        // FinishExecution();
     }
 
     private void FinishExecution()
@@ -240,7 +206,7 @@
         StateHasChanged();
     }
 
-    public async Task OnExecutingNodeChangedAsync(IPipelineNode node)
+    public async Task OnExecutingNodeChangedAsync(IPipelineNode? node)
     {
         _currentExecutingNode = node;
 
@@ -250,6 +216,21 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    public Task OnStateChaned()
+    {
+        return InvokeAsync(StateHasChanged);
+    }
+
+    public void ClearExecutionFrames()
+    {
+        _executionFrameStack.Clear();
+    }
+
+    public void AddExecutionFrame(ExecutionFrame frame)
+    {
+        _executionFrameStack.Push(frame);
     }
 
 }

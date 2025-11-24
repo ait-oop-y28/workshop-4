@@ -1,7 +1,5 @@
-using System.Diagnostics;
-using Workshop4.Application.Json.Models;
-using Workshop4.Application.Pipelines.Models;
-using Workshop4.Application.Pipelines.Presentation;
+using Workshop4.Application.Pipelines.Commands;
+using Workshop4.Application.Pipelines.Iterators;
 
 namespace Workshop4.Application.Pipelines.Nodes;
 
@@ -28,34 +26,14 @@ public sealed class GroupNode : IPipelineNode
         visitor.Visit(this);
     }
 
-    public async Task<NodeExecutionResult> ExecuteAsync(
-        JsonDocument input,
-        IPipelinePresentationManager presentationManager)
+    public IPipelineIterator GetEnumerator()
     {
-        if (_childNodes.Count is 0)
-            return new NodeExecutionResult.Success(input);
+        return new GroupNodeIterator(this);
+    }
 
-        await presentationManager.OnExecutingNodeChangedAsync(this);
-
-        foreach (IPipelineNode node in _childNodes)
-        {
-            NodeExecutionResult result = await node.ExecuteAsync(input, presentationManager);
-
-            if (result is NodeExecutionResult.Success success)
-            {
-                input = success.Document;
-            }
-            else if (result is NodeExecutionResult.Failure failure)
-            {
-                return failure;
-            }
-            else
-            {
-                throw new UnreachableException($"Unknown result = {result}");
-            }
-        }
-
-        return new NodeExecutionResult.Success(input);
+    public IPipelineCommand? TryCreateCommand()
+    {
+        return null;
     }
 
     public override string ToString()

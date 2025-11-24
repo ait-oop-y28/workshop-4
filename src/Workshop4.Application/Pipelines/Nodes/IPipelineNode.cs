@@ -1,6 +1,5 @@
-using Workshop4.Application.Json.Models;
-using Workshop4.Application.Pipelines.Models;
-using Workshop4.Application.Pipelines.Presentation;
+using Workshop4.Application.Pipelines.Commands;
+using Workshop4.Application.Pipelines.Iterators;
 
 namespace Workshop4.Application.Pipelines.Nodes;
 
@@ -8,5 +7,7 @@ public interface IPipelineNode
 {
     void Accept(IPipelineNodeVisitor visitor);
 
-    Task<NodeExecutionResult> ExecuteAsync(JsonDocument input, IPipelinePresentationManager presentationManager);
+    IPipelineIterator GetEnumerator();
+
+    IPipelineCommand? TryCreateCommand();
 }
