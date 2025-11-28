@@ -10,10 +10,12 @@ public sealed class DynamicNodeVisitor : IPipelineNodeVisitor
 {
     private readonly EventCallback<GroupNode> _onGroupOpened;
     private readonly List<RenderFragment> _actions;
+    private readonly IPipelineNode? _currentNode;
 
-    public DynamicNodeVisitor(EventCallback<GroupNode> onGroupOpened)
+    public DynamicNodeVisitor(EventCallback<GroupNode> onGroupOpened, IPipelineNode? currentNode)
     {
         _onGroupOpened = onGroupOpened;
+        _currentNode = currentNode;
         _actions = [];
     }
 
@@ -21,12 +23,16 @@ public sealed class DynamicNodeVisitor : IPipelineNodeVisitor
 
     public IReadOnlyCollection<RenderFragment> Actions => _actions;
 
+    public bool IsCurrentNode { get; private set; }
+
     public void Visit(FilterNode node)
     {
         NodeComponent = DynamicRenderFragmentFactory.Create<FilterNodeComponent>(new()
         {
             [nameof(FilterNodeComponent.Node)] = node,
         });
+
+        IsCurrentNode |= ReferenceEquals(node, _currentNode);
     }
 
     public void Visit(MappingNode node)
@@ -35,6 +41,8 @@ public sealed class DynamicNodeVisitor : IPipelineNodeVisitor
         {
             [nameof(MapNodeComponent.Node)] = node,
         });
+
+        IsCurrentNode |= ReferenceEquals(node, _currentNode);
     }
 
     public void Visit(GroupNode node)
@@ -44,6 +52,8 @@ public sealed class DynamicNodeVisitor : IPipelineNodeVisitor
             [nameof(GroupNodeComponent.Node)] = node,
             [nameof(GroupNodeComponent.OnEdit)] = _onGroupOpened,
         });
+
+        IsCurrentNode |= ReferenceEquals(node, _currentNode);
     }
 
     public void Visit(EnabledNode node)
@@ -53,6 +63,7 @@ public sealed class DynamicNodeVisitor : IPipelineNodeVisitor
             [nameof(EnabledNodeActionComponent.Node)] = node,
         }));
 
+        IsCurrentNode |= ReferenceEquals(node, _currentNode);
         node.Wrapped.Accept(this);
     }
 }

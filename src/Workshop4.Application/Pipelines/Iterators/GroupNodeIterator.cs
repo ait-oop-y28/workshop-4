@@ -27,7 +27,25 @@ public sealed class GroupNodeIterator : IPipelineIterator
         }
     }
 
+    private GroupNodeIterator(
+        IPipelineNode? current,
+        IEnumerable<IPipelineNode> returnQueue,
+        IEnumerable<IPipelineIterator> iteratorStack)
+    {
+        _current = current;
+        _returnQueue = new Queue<IPipelineNode>(returnQueue);
+        _iteratorStack = new Stack<IPipelineIterator>(iteratorStack);
+    }
+
     object IEnumerator.Current => Current;
+
+    public IPipelineIterator Clone()
+    {
+        return new GroupNodeIterator(
+            _current,
+            _returnQueue,
+            _iteratorStack.Select(iterator => iterator.Clone()).Reverse());
+    }
 
     public IPipelineNode Current
         => _current ?? throw new InvalidOperationException("No current node");

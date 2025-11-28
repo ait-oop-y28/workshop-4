@@ -1,0 +1,27 @@
+@using System.Diagnostics.CodeAnalysis
+@using Workshop4.Presentation.Execution
+@using Workshop4.Presentation.Execution.DebugExecution
+@using Workshop4.Presentation.Models
+@using Workshop4.Presentation.Services
+@namespace Workshop4.Presentation.Components.ExecutionActions
+
+<MudButton Variant="Variant.Outlined" Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.KeyboardArrowRight"
+           Disabled="@(AppState.Instance.ExecutionState is not ExecutionState.Debug)"
+           OnClick="@OnStepForwardClicked">
+    Forward
+</MudButton>
+
+@code {
+
+    [NotNull]
+    [Parameter]
+    [EditorRequired]
+    public DebugExecutionStrategy? Strategy { get; set; }
+
+    private async Task OnStepForwardClicked()
+    {
+        await Strategy.StepForwardAsync();
+    }
+
+}

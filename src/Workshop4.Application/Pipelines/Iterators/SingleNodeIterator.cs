@@ -14,6 +14,9 @@ public sealed class SingleNodeIterator : IPipelineIterator
 
     object IEnumerator.Current => Current;
 
+    public IPipelineIterator Clone()
+        => new SingleNodeIterator(Current) { _isFirstIteration = _isFirstIteration };
+
     public IPipelineNode Current { get; }
 
     public bool MoveNext()

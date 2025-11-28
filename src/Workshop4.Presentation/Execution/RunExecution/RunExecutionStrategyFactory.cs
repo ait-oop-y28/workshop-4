@@ -1,6 +1,6 @@
 using Workshop4.Application.Json.Models;
 
-namespace Workshop4.Presentation.Execution;
+namespace Workshop4.Presentation.Execution.RunExecution;
 
 public sealed class RunExecutionStrategyFactory : IExecutionStrategyFactory
 {

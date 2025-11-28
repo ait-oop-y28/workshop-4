@@ -6,7 +6,10 @@
 @namespace Workshop4.Presentation.Components.Nodes
 
 @{
-    bool isExecuting = ReferenceEquals(Node, HighlightedNode);
+    var visitor = new DynamicNodeVisitor(OnGroupOpened, HighlightedNode);
+    Node.Accept(visitor);
+
+    bool isExecuting = visitor.IsCurrentNode;
     string cssClass = isExecuting ? "pa-0 node-executing" : "pa-0";
 }
 
@@ -19,11 +22,6 @@
         <MudCard Elevation="2" Style="height: 100%; background: #f1f1f1" Class="node-card-wrapper"/>
     </PhazorGridItem>
 
-    @{
-        var visitor = new DynamicNodeVisitor(OnGroupOpened);
-        Node.Accept(visitor);
-    }
-
     <PhazorGridItem MajorIndex="1" MinorIndex="1">
         <PhazorHStack
             Horizontal="HorizontalDistribution.Left"
@@ -33,7 +31,7 @@
 
             <RemoveNodeActionComponent
                 OnRemoveNodeClicked="@(() => OnNodeRemoved.InvokeAsync(Node))"/>
-            
+
             @foreach (RenderFragment action in visitor.Actions)
             {
                 @action

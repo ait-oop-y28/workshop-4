@@ -1,4 +1,8 @@
 @using Phazor.Components.Models
+@using Workshop4.Presentation.Execution
+@using Workshop4.Presentation.Execution.Actions
+@using Workshop4.Presentation.Execution.DebugExecution
+@using Workshop4.Presentation.Execution.RunExecution
 @using Workshop4.Presentation.Models
 @using Workshop4.Presentation.Services
 
@@ -15,7 +19,7 @@
         Color="Color.Primary"
         StartIcon="@Icons.Material.Filled.PlayArrow"
         Disabled="@AppState.Instance.IsExecuting"
-        OnClick="@OnRunClicked">
+        OnClick="@(() => OnExecuteClicked.InvokeAsync(new RunExecutionStrategyFactory()))">
         Run
     </MudButton>
     <MudButton
@@ -23,7 +27,7 @@
         Color="Color.Success"
         StartIcon="@Icons.Material.Filled.BugReport"
         Disabled="@AppState.Instance.IsExecuting"
-        OnClick="@OnDebugClicked">
+        OnClick="@(() => OnExecuteClicked.InvokeAsync(new DebugExecutionStrategyFactory()))">
         Debug
     </MudButton>
 
@@ -34,24 +38,17 @@
     Horizontal="HorizontalDistribution.Left"
     Gap="10px">
 
-    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.KeyboardArrowLeft"
-               Disabled="@(AppState.Instance.ExecutionState != ExecutionState.Debug || StepBackDisabled)"
-               OnClick="@OnStepBackClicked">
-        Back
-    </MudButton>
-    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.KeyboardArrowRight"
-               Disabled="@(AppState.Instance.ExecutionState is not ExecutionState.Debug)"
-               OnClick="@OnStepForwardClicked">
-        Forward
-    </MudButton>
-    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-               Disabled="@(AppState.Instance.ExecutionState is not ExecutionState.Debug)"
-               OnClick="@OnPassClicked">
-        Pass
-    </MudButton>
+    @if (ExecutionStrategy is not null)
+    {
+        var builder = new ExecutionActionsBuilder();
+        ExecutionStrategy.ActionLink.Configure(builder, ExecutionStrategy);
+
+        foreach (RenderFragment fragment in builder.Fragments)
+        {
+            @fragment
+        }
+    }
+
 
 </PhazorHStack>
 
@@ -59,26 +56,10 @@
 
     [Parameter]
     [EditorRequired]
-    public EventCallback OnRunClicked { get; set; }
+    public IExecutionStrategy? ExecutionStrategy { get; set; }
 
     [Parameter]
     [EditorRequired]
-    public EventCallback OnDebugClicked { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public EventCallback OnStepBackClicked { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public EventCallback OnStepForwardClicked { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public EventCallback OnPassClicked { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public bool StepBackDisabled { get; set; }
+    public EventCallback<IExecutionStrategyFactory> OnExecuteClicked { get; set; }
 
 }
